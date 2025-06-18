@@ -1,0 +1,8 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/ExcelLite/.vs/ExcelLite
+/ExcelLite/ExcelLite/obj
+/ExcelLite/ExcelLite/bin/Debug/net7.0
