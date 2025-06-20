@@ -3,6 +3,7 @@
 ################################################################################
 
 /.vs
-/ExcelLite/.vs/ExcelLite
 /ExcelLite/ExcelLite/obj
-/ExcelLite/ExcelLite/bin/Debug/net7.0
+/ExcelLite/ExcelLite/bin
+/ExcelLite/.vs/
+/ExcelLite/ExcelLite.ConsoleExamples/bin/Debug/net7.0
