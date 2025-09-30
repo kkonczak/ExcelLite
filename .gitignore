@@ -6,4 +6,5 @@
 /ExcelLite/ExcelLite/obj
 /ExcelLite/ExcelLite/bin
 /ExcelLite/.vs/
-/ExcelLite/ExcelLite.ConsoleExamples/bin/Debug/net7.0
+bin/
+obj/
