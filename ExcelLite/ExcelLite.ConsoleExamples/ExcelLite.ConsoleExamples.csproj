@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.20" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\ExcelLite\ExcelLite.csproj" />
   </ItemGroup>
 

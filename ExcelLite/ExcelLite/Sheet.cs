@@ -10,6 +10,8 @@
 
         public string Name { get; set; }
 
+        public SheetVisibility Visibility { get; set; } = SheetVisibility.Visible;
+
         public SheetView View { get; } = new SheetView();
 
         public IEnumerable<object> Data { get; set; }

@@ -21,11 +21,16 @@ namespace ExcelLite.Internal
 
             stringBuilder.Append($$"""
             <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-            <Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Application>ExcelLite</Application><DocSecurity>0</DocSecurity><ScaleCrop>false</ScaleCrop><HeadingPairs><vt:vector size="2" baseType="variant"><vt:variant><vt:lpstr>Sheets</vt:lpstr></vt:variant><vt:variant><vt:i4>1</vt:i4></vt:variant></vt:vector></HeadingPairs><TitlesOfParts><vt:vector size="1" baseType="lpstr">
+            <Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"><Application>ExcelLite</Application><DocSecurity>0</DocSecurity><ScaleCrop>false</ScaleCrop><HeadingPairs><vt:vector size="2" baseType="variant"><vt:variant><vt:lpstr>Sheets</vt:lpstr></vt:variant><vt:variant><vt:i4>{{_workbook.Sheets.Count()}}</vt:i4></vt:variant></vt:vector></HeadingPairs><TitlesOfParts><vt:vector size="{{_workbook.Sheets.Count()}}" baseType="lpstr">
             """);
 
             foreach (var sheet in _workbook.Sheets)
             {
+                if (sheet.Name.Length >= 32)
+                {
+                    throw new ArgumentException("Sheet name is too long!");
+                }
+
                 stringBuilder.Append("<vt:lpstr>");
                 stringBuilder.Append(sheet.Name);
                 stringBuilder.Append("</vt:lpstr>");
@@ -88,7 +93,13 @@ namespace ExcelLite.Internal
             var i = 1;
             foreach (var sheet in _workbook.Sheets)
             {
-                stringBuilder.Append($"<sheet name=\"{sheet.Name}\" sheetId=\"{i}\" r:id=\"rId{i}\"/>");
+                var visibility = sheet.Visibility switch
+                {
+                    SheetVisibility.Hidden => " state=\"hidden\"",
+                    SheetVisibility.VeryHidden => " state=\"veryHidden\"",
+                    _ => string.Empty
+                };
+                stringBuilder.Append($"<sheet name=\"{sheet.Name}\" sheetId=\"{i}\" r:id=\"rId{i}\"{visibility}/>");
                 i++;
             }
 
@@ -246,14 +257,17 @@ namespace ExcelLite.Internal
                     excelCellFormatId = ResolveExcelCellFormatId(BuiltCellFormat.TimeOnly);
                 }
 
-                headers.Add(new Header
+                if (property.GetCustomAttribute<ColumnIgnoreAttribute>() == null)
                 {
-                    Name = property.GetCustomAttribute<ColumnNameAttribute>()?._name ?? property.Name,
-                    Position = property.GetCustomAttribute<ColumnPositionAttribute>()?._index,
-                    Property = property,
-                    CellFormatId = excelCellFormatId,
-                    GroupColumnAttributes = property.GetCustomAttributes<GroupColumnNameAttribute>()
-                });
+                    headers.Add(new Header
+                    {
+                        Name = property.GetCustomAttribute<ColumnNameAttribute>()?._name ?? property.Name,
+                        Position = property.GetCustomAttribute<ColumnPositionAttribute>()?._index,
+                        Property = property,
+                        CellFormatId = excelCellFormatId,
+                        GroupColumnAttributes = property.GetCustomAttributes<GroupColumnNameAttribute>()
+                    });
+                }
             }
 
             var usedPositions = new HashSet<int>(headers.Where(x => x.Position.HasValue).Select(x => x.Position!.Value));
@@ -380,7 +394,7 @@ namespace ExcelLite.Internal
 
                 streamWriter.Write("<row r=\"");
                 streamWriter.Write(rowIndex.ToString());
-                streamWriter.Write("\" spans=\"" + rowIndex + ":");
+                streamWriter.Write("\" spans=\"1:");
                 streamWriter.Write(headers.Count.ToString());
                 streamWriter.Write("\" x14ac:dyDescent=\"0.3\">");
 
