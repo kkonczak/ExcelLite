@@ -22,6 +22,12 @@ This makes it perfect for:
 - Background/batch processing where performance and memory usage matter
 - Compliance-conscious environments where software origin matters
 
+## 📊 Performance Comparison with Other Libraries
+| Method             | Mean    | Error    | StdDev   | Gen0        | Gen1      | Gen2      | Allocated |
+|------------------- |--------:|---------:|---------:|------------:|----------:|----------:|----------:|
+| ExcelLiteBenchmark | **1.555 s** | 0.0307 s | 0.0486 s |  88000.0000 | 2000.0000 | 2000.0000 | **140.74 MB** |
+| MiniExcelBenchmark | 1.556 s | 0.0303 s | 0.0394 s | 447000.0000 | 3000.0000 | 3000.0000 | 700.44 MB |
+
 ## 🛠 Example Use Case
 ### Generate simple file
 ```csharp
