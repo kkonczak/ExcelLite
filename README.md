@@ -1,4 +1,9 @@
 # 📦 ExcelLite – Lightweight Open Source Excel Generator for .NET
+[![Build](https://github.com/kkonczak/ExcelLite/actions/workflows/dotnet.yml/badge.svg)](https://github.com/kkonczak/ExcelLite/actions/workflows/dotnet.yml)
+![License](https://img.shields.io/github/license/kkonczak/ExcelLite)
+![.NET](https://img.shields.io/badge/.NET-7.0%2B-blue)
+![Platform](https://img.shields.io/badge/platform-windows%20%7C%20linux%20%7C%20macos-lightgrey)
+![Made in Europe](https://img.shields.io/badge/made%20in-Europe-blue)
 
 **ExcelLite** is an open-source C# library designed for **fast and memory-efficient generation of Excel (Open XML) files**. It focuses on **simplicity and performance**, making it ideal for scenarios where massive Excel files need to be created with minimal memory overhead.
 
