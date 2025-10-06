@@ -21,8 +21,8 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Restore dependencies
-      run: dotnet restore ExcelLite/ExcelLite.BenchmarkDotNet/ExcelLite.BenchmarkDotNet.sln
+      run: dotnet restore ExcelLite/ExcelLite.sln
     - name: Build
-      run: dotnet build ExcelLite/ExcelLite.BenchmarkDotNet/ExcelLite.BenchmarkDotNet.sln --no-restore
+      run: dotnet build ExcelLite/ExcelLite.sln --no-restore
     - name: Test
-      run: dotnet test ExcelLite/ExcelLite.BenchmarkDotNet/ExcelLite.BenchmarkDotNet.sln --no-build --verbosity normal
+      run: dotnet test ExcelLite/ExcelLite.sln --no-build --verbosity normal
