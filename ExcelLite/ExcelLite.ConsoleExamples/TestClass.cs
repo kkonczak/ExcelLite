@@ -40,5 +40,7 @@ namespace ExcelLite.ConsoleExamples
         public DateOnly DateOnly { get; set; }
 
         public TimeOnly TimeOnly { get; set; }
+
+        public ClassWithCustomExporter PropertyWithExporter { get; set; }
     }
 }

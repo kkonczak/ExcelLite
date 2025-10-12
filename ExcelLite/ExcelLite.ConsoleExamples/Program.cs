@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using System.Reflection.Metadata;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ExcelLite.ConsoleExamples
 {
@@ -96,7 +94,11 @@ namespace ExcelLite.ConsoleExamples
                     OtherBoolean = true,
                     DateTime= DateTime.Now,
                     TimeOnly = new TimeOnly(21,37,00),
-                    DateOnly = new DateOnly(2025,07,01)
+                    DateOnly = new DateOnly(2025,07,01),
+                    PropertyWithExporter = new ClassWithCustomExporter()
+                    {
+                        TestText = "Content of TestText"
+                    }
                 },
             };
 
