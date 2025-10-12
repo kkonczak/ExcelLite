@@ -13,6 +13,7 @@ namespace ExcelLite.ConsoleExamples
             // await GenerateSheetWithFreezePanes() // Example 2
             await MultipleSheetsTest();  // example 3
             //await SheetFromDbTest(); //example 4
+            //await SheetManyRowsTest(); //example 5
         }
 
         private static async Task GenerateSheet()
@@ -124,7 +125,7 @@ namespace ExcelLite.ConsoleExamples
             var sheet1 = new Sheet("Arkusz1", data);
             sheet1.View.FreezePanes.YSplit = 3;
 
-            await ExcelLite.Export("test.xlsx", new Workbook(new Sheet[] { new Sheet("Salary", data2), sheet1  }));
+            await ExcelLite.Export("test.xlsx", new Workbook(new Sheet[] { new Sheet("Salary", data2), sheet1 }));
         }
 
         private static async Task SheetFromDbTest()
@@ -155,6 +156,11 @@ namespace ExcelLite.ConsoleExamples
             context.SaveChanges();
 
             await ExcelLite.Export("test.xlsx", context.Salaries.Where(x => x.Salary > 500m));
+        }
+
+        public static async Task SheetManyRowsTest()
+        {
+            await ExcelLite.Export("test.xlsx", Enumerable.Range(0, 12345).Select(x => new { Column1 = x, Column2 = x, Column3 = x }));
         }
     }
 }

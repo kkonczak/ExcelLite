@@ -220,7 +220,7 @@ namespace ExcelLite.Internal
 
             if (sheet.View.FreezePanes.XSplit > 0 || sheet.View.FreezePanes.YSplit > 0)
             {
-                streamWriter.Write($"<pane {(sheet.View.FreezePanes.YSplit > 0 ? $"ySplit=\"{sheet.View.FreezePanes.YSplit}\"" : "")} {(sheet.View.FreezePanes.XSplit > 0 ? $"xSplit=\"{sheet.View.FreezePanes.XSplit}\"" : "")} topLeftCell=\"{GetCellId(sheet.View.FreezePanes.YSplit + 1, sheet.View.FreezePanes.XSplit)}\" activePane=\"bottomLeft\" state=\"frozen\" />");
+                streamWriter.Write($"<pane {(sheet.View.FreezePanes.YSplit > 0 ? $"ySplit=\"{sheet.View.FreezePanes.YSplit}\"" : "")} {(sheet.View.FreezePanes.XSplit > 0 ? $"xSplit=\"{sheet.View.FreezePanes.XSplit}\"" : "")} topLeftCell=\"{GetAndWriteCellId(sheet.View.FreezePanes.YSplit + 1, sheet.View.FreezePanes.XSplit)}\" activePane=\"bottomLeft\" state=\"frozen\" />");
             }
 
             streamWriter.Write("</sheetView></sheetViews>");
@@ -343,14 +343,14 @@ namespace ExcelLite.Internal
                     {
                         //<c r="A1"><v>11</v></c>
                         streamWriter.Write("<c r=\"");
-                        streamWriter.Write(GetCellId(rowIndex, groupColumnNameInfo.StartIndex));
+                        streamWriter.Write(GetAndWriteCellId(rowIndex, groupColumnNameInfo.StartIndex));
                         streamWriter.Write("\" t=\"inlineStr\">");
                         streamWriter.Write("<is><t>");
                         streamWriter.Write(groupColumnNameInfo.Name);
                         streamWriter.Write("</t></is>");
                         streamWriter.Write("</c>");
 
-                        mergedCells.Add($"{GetCellId(rowIndex, groupColumnNameInfo.StartIndex)}:{GetCellId(rowIndex, groupColumnNameInfo.EndIndex)}");
+                        mergedCells.Add($"{GetAndWriteCellId(rowIndex, groupColumnNameInfo.StartIndex)}:{GetAndWriteCellId(rowIndex, groupColumnNameInfo.EndIndex)}");
                     }
 
                     rowIndex++;
@@ -372,7 +372,7 @@ namespace ExcelLite.Internal
             {
                 //<c r="A1"><v>11</v></c>
                 streamWriter.Write("<c r=\"");
-                streamWriter.Write(GetCellId(rowIndex, headerI));
+                streamWriter.Write(GetAndWriteCellId(rowIndex, headerI));
                 streamWriter.Write("\" t=\"inlineStr\">");
                 streamWriter.Write("<is><t>");
                 streamWriter.Write(header.Name);
@@ -406,7 +406,7 @@ namespace ExcelLite.Internal
                     {
                         //<c r="A1"><v>11</v></c>
                         streamWriter.Write("<c r=\"");
-                        streamWriter.Write(GetCellId(rowIndex, columnIndex));
+                        GetAndWriteCellId(rowIndex, columnIndex);
                         streamWriter.Write("\" ");
 
                         if (header.CellFormatId.HasValue)
@@ -523,8 +523,19 @@ namespace ExcelLite.Internal
             return excelCellFormatId;
         }
 
-        public string GetCellId(int rowIndex, int columnIndex)
-            => $"{GetColumnName(columnIndex)}{rowIndex}";
+        public string GetAndWriteCellId(int rowIndex, int columnIndex)
+        {
+            var stringBuilder = new StringBuilder(13);
+            stringBuilder.Append(GetColumnName(columnIndex));
+            stringBuilder.Append(rowIndex);
+            return stringBuilder.ToString();
+        }
+
+        public void GetCellId(StreamWriter streamWriter, int rowIndex, int columnIndex)
+        {
+            streamWriter.Write(GetColumnName(columnIndex));
+            streamWriter.Write(rowIndex);
+        }
 
         public string GetColumnName(int columnIndex)
         {
