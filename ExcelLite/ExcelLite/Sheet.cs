@@ -14,6 +14,8 @@
 
         public SheetView View { get; } = new SheetView();
 
+        public bool UseBorders { get; set; }
+
         public IEnumerable<object> Data { get; set; }
     }
 }

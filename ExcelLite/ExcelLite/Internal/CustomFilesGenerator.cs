@@ -135,13 +135,16 @@ namespace ExcelLite.Internal
             }
 
             stylesBuilder.Append($$"""
-            <fonts count="1" x14ac:knownFonts="1"><font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/><charset val="238"/><scheme val="minor"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+            <fonts count="1" x14ac:knownFonts="1"><font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/><charset val="238"/><scheme val="minor"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>
+            """);
+            stylesBuilder.Append($$"""
+            <borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FF000000"/></left><right style="thin"><color rgb="FF000000"/></right><top style="thin"><color rgb="FF000000"/></top><bottom style="thin"><color rgb="FF000000"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
             """);
 
             stylesBuilder.Append("<cellXfs count=\"");
             stylesBuilder.Append(_excelCellFormatList.Count + 1);
             stylesBuilder.Append("\">");
-            stylesBuilder.Append("<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\"/>");
+            stylesBuilder.Append($"<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\"/>");
             int styleId = 1;
 
             foreach (var style in _excelCellFormatList)
@@ -149,16 +152,19 @@ namespace ExcelLite.Internal
                 switch (style.BuiltCellFormat)
                 {
                     case BuiltCellFormat.DateOnly:
-                        stylesBuilder.Append("<xf numFmtId=\"14\" applyNumberFormat=\"1\" />");
+                        stylesBuilder.Append($"<xf numFmtId=\"14\" applyNumberFormat=\"1\"{(style.UseBorders ? " applyBorder=\"1\" borderId=\"1\"" : string.Empty)} />");
                         break;
                     case BuiltCellFormat.DateTime:
-                        stylesBuilder.Append("<xf numFmtId=\"22\" applyNumberFormat=\"1\" />");
+                        stylesBuilder.Append($"<xf numFmtId=\"22\" applyNumberFormat=\"1\"{(style.UseBorders ? " applyBorder=\"1\" borderId=\"1\"" : string.Empty)} />");
                         break;
                     case BuiltCellFormat.TimeOnly:
-                        stylesBuilder.Append("<xf numFmtId=\"21\" applyNumberFormat=\"1\" />");
+                        stylesBuilder.Append($"<xf numFmtId=\"21\" applyNumberFormat=\"1\"{(style.UseBorders ? " applyBorder=\"1\" borderId=\"1\"" : string.Empty)} />");
                         break;
                     case BuiltCellFormat.Custom:
-                        stylesBuilder.Append($"<xf numFmtId=\"{customFormatIds[style]}\" applyNumberFormat=\"1\" />");
+                        stylesBuilder.Append($"<xf numFmtId=\"{customFormatIds[style]}\" applyNumberFormat=\"1\"{(style.UseBorders ? " applyBorder=\"1\" borderId=\"1\"" : string.Empty)} />");
+                        break;
+                    default:
+                        stylesBuilder.Append($"<xf numFmtId=\"0\"{(style.UseBorders ? " applyBorder=\"1\" borderId=\"1\"" : string.Empty)} />");
                         break;
                 }
 
@@ -209,6 +215,12 @@ namespace ExcelLite.Internal
 
         public void GenerateSheet(Sheet sheet, StreamWriter streamWriter, CancellationToken ct = default)
         {
+            _excelCellFormatList.Add(new ExcelCellFormat
+            {
+                IsDefaultForSheet = sheet,
+                UseBorders = sheet.UseBorders
+            });
+
             streamWriter.Write($$"""
             <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">
@@ -230,45 +242,21 @@ namespace ExcelLite.Internal
             """);
 
             // Get headers
-            var recordsType = sheet.Data.GetType().GenericTypeArguments[0];
+            Type recordsType;
+            if (sheet.Data.GetType().IsArray)
+            {
+                recordsType = sheet.Data.GetType().GetElementType()!;
+            }
+            else
+            {
+                recordsType = sheet.Data.GetType().GenericTypeArguments[0];
+            }
 
             var headers = new List<Header>();
             var groupColumnNameInfos = new List<GroupColumnNameInfo>();
             var mergedCells = new List<string>();
 
-            foreach (var property in recordsType.GetProperties())
-            {
-                int? excelCellFormatId = null;
-
-                if (property.GetCustomAttribute<ColumnFormatAttribute>() != null)
-                {
-                    excelCellFormatId = ResolveExcelCellFormatId(BuiltCellFormat.Custom, property.GetCustomAttribute<ColumnFormatAttribute>()!._format);
-                }
-                if (property.PropertyType == typeof(DateTime))
-                {
-                    excelCellFormatId = ResolveExcelCellFormatId(BuiltCellFormat.DateTime);
-                }
-                else if (property.PropertyType == typeof(DateOnly))
-                {
-                    excelCellFormatId = ResolveExcelCellFormatId(BuiltCellFormat.DateOnly);
-                }
-                else if (property.PropertyType == typeof(TimeOnly))
-                {
-                    excelCellFormatId = ResolveExcelCellFormatId(BuiltCellFormat.TimeOnly);
-                }
-
-                if (property.GetCustomAttribute<ColumnIgnoreAttribute>() == null)
-                {
-                    headers.Add(new Header
-                    {
-                        Name = property.GetCustomAttribute<ColumnNameAttribute>()?._name ?? property.Name,
-                        Position = property.GetCustomAttribute<ColumnPositionAttribute>()?._index,
-                        Property = property,
-                        CellFormatId = excelCellFormatId,
-                        GroupColumnAttributes = property.GetCustomAttributes<GroupColumnNameAttribute>()
-                    });
-                }
-            }
+            GetHeaders(sheet, recordsType, headers);
 
             var usedPositions = new HashSet<int>(headers.Where(x => x.Position.HasValue).Select(x => x.Position!.Value));
             int rowIndex = 0;
@@ -401,7 +389,7 @@ namespace ExcelLite.Internal
                 int columnIndex = 0;
                 foreach (var header in headers)
                 {
-                    var value = header.Property?.GetValue(data);
+                    var value = header.ParentProperties is null ? header.Property?.GetValue(data) : GetPropertyValue(header, data);
                     if (value is not null)
                     {
                         //<c r="A1"><v>11</v></c>
@@ -515,10 +503,73 @@ namespace ExcelLite.Internal
             """);
         }
 
-        private int? ResolveExcelCellFormatId(BuiltCellFormat builtCellFormat, string? customFormat = null)
+        private void GetHeaders(Sheet sheet, Type recordsType, List<Header> headers, List<PropertyInfo>? parentProperties = null)
+        {
+            foreach (var property in recordsType.GetProperties())
+            {
+                int? excelCellFormatId = null;
+
+                if (property.GetCustomAttribute<ColumnFormatAttribute>() != null)
+                {
+                    excelCellFormatId = ResolveExcelCellFormatId(sheet, BuiltCellFormat.Custom, property.GetCustomAttribute<ColumnFormatAttribute>()!._format);
+                }
+                if (property.PropertyType == typeof(DateTime))
+                {
+                    excelCellFormatId = ResolveExcelCellFormatId(sheet, BuiltCellFormat.DateTime);
+                }
+                else if (property.PropertyType == typeof(DateOnly))
+                {
+                    excelCellFormatId = ResolveExcelCellFormatId(sheet, BuiltCellFormat.DateOnly);
+                }
+                else if (property.PropertyType == typeof(TimeOnly))
+                {
+                    excelCellFormatId = ResolveExcelCellFormatId(sheet, BuiltCellFormat.TimeOnly);
+                }
+                else
+                {
+                    excelCellFormatId = _excelCellFormatList.IndexOf(_excelCellFormatList.First(x => x.IsDefaultForSheet == sheet)) + 1;
+                }
+
+                if (property.GetCustomAttribute<ColumnIgnoreAttribute>() == null)
+                {
+                    var isNestedClass = property.PropertyType.IsClass && property.PropertyType != typeof(string) && !property.PropertyType.IsAssignableTo(typeof(ICustomCellExporter));
+
+                    if (!isNestedClass)
+                    {
+                        headers.Add(new Header
+                        {
+                            Name = property.GetCustomAttribute<ColumnNameAttribute>()?._name ?? property.Name,
+                            Position = property.GetCustomAttribute<ColumnPositionAttribute>()?._index,
+                            Property = property,
+                            CellFormatId = excelCellFormatId,
+                            GroupColumnAttributes = property.GetCustomAttributes<GroupColumnNameAttribute>(),
+                            ParentProperties = parentProperties
+                        });
+                    }
+                    else
+                    {
+                        var newParentProperties = (parentProperties ?? new List<PropertyInfo>()).ToList();
+                        newParentProperties.Add(property);
+                        GetHeaders(sheet, property.PropertyType, headers, newParentProperties);
+                    }
+                }
+            }
+        }
+
+        private object GetPropertyValue(Header header, object data)
+        {
+            foreach (var property in header.ParentProperties)
+            {
+                data = property.GetValue(data);
+            }
+
+            return header.Property.GetValue(data);
+        }
+
+        private int? ResolveExcelCellFormatId(Sheet sheet, BuiltCellFormat builtCellFormat, string? customFormat = null)
         {
             int? excelCellFormatId;
-            var excelCellFormat = _excelCellFormatList.FirstOrDefault(x => (builtCellFormat != BuiltCellFormat.Custom && x.BuiltCellFormat == builtCellFormat) || (builtCellFormat == BuiltCellFormat.Custom && x.CustomFormat == customFormat));
+            var excelCellFormat = _excelCellFormatList.FirstOrDefault(x => ((builtCellFormat != BuiltCellFormat.Custom && x.BuiltCellFormat == builtCellFormat) || (builtCellFormat == BuiltCellFormat.Custom && x.CustomFormat == customFormat)) && x.UseBorders == sheet.UseBorders);
             if (excelCellFormat == null)
             {
                 excelCellFormat = new ExcelCellFormat() { BuiltCellFormat = builtCellFormat, CustomFormat = customFormat };
@@ -593,10 +644,27 @@ namespace ExcelLite.Internal
 
         private class Header
         {
+            private int? _cellFormatId;
+
             public string? Name { get; set; }
             public PropertyInfo? Property { get; set; }
+            public List<PropertyInfo>? ParentProperties { get; set; } = null;
             public int? Position { get; set; }
-            public int? CellFormatId { get; set; }
+
+            public int? CellFormatId
+            {
+                get
+                {
+                    return _cellFormatId;
+                }
+                set
+                {
+                    _cellFormatId = value;
+                    CellFormatIdString = _cellFormatId.ToString();
+                }
+            }
+            public string? CellFormatIdString { get; private set; }
+
             public IEnumerable<GroupColumnNameAttribute>? GroupColumnAttributes { get; set; } = new List<GroupColumnNameAttribute>();
         }
 
@@ -616,6 +684,10 @@ namespace ExcelLite.Internal
             public BuiltCellFormat BuiltCellFormat { get; set; }
 
             public string? CustomFormat { get; set; }
+
+            public bool UseBorders { get; set; }
+
+            public Sheet? IsDefaultForSheet { get; set; }
         }
 
         private enum BuiltCellFormat

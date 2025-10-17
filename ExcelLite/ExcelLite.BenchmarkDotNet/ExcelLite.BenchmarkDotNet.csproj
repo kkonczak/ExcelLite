@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.15.2" />
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
     <PackageReference Include="MiniExcel" Version="1.41.2" />
   </ItemGroup>
 

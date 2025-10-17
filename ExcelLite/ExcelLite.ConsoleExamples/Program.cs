@@ -9,9 +9,12 @@ namespace ExcelLite.ConsoleExamples
         {
             // await GenerateSheet() // Example 1
             // await GenerateSheetWithFreezePanes() // Example 2
-            await MultipleSheetsTest();  // example 3
-            //await SheetFromDbTest(); //example 4
-            //await SheetManyRowsTest(); //example 5
+            // await MultipleSheetsTest();  // example 3
+            // await SheetFromDbTest(); //example 4
+            // await SheetManyRowsTest(); //example 5
+            // await SheetWithCustomClassInData(); // example 6
+            //await SheetWithNestedClasses(); // example 7
+            await ManyRecordsTest();
         }
 
         private static async Task GenerateSheet()
@@ -163,6 +166,104 @@ namespace ExcelLite.ConsoleExamples
         public static async Task SheetManyRowsTest()
         {
             await ExcelLite.Export("test.xlsx", Enumerable.Range(0, 12345).Select(x => new { Column1 = x, Column2 = x, Column3 = x }));
+        }
+
+        public static async Task SheetWithCustomClassInData()
+        {
+            var data = new List<ClassForSheetWithCustomClassInData>()
+            {
+                new ClassForSheetWithCustomClassInData()
+                {
+                    ClassAField1 = "field1",
+                    NestedClass = new NestedClassForSheetWithCustomClassInData()
+                    {
+                        ClassBField1 = "NestedClass->ClassBField1",
+                        ClassBField2 = "NestedClass->ClassBField2",
+                        ClassC = new ClassC()
+                        {
+                            ClassCField1 = "NestedClass->ClassC->ClassCField1",
+                            ClassCField2 = "NestedClass->ClassC->ClassCField2",
+                            ClassCField3 = "NestedClass->ClassC->ClassCField3"
+                        }
+                    },
+                    ClassAField2 = "field2"
+                }
+            };
+
+            await ExcelLite.Export("test.xlsx", data);
+        }
+
+        public static async Task SheetWithNestedClasses()
+        {
+            var data = new List<RecordWithNestedClasses>()
+            {
+                new RecordWithNestedClasses
+                {
+                    PersonalData = new PersonalData
+                    {
+                        FirstName = "Jan",
+                        LastName = "Nowak",
+                        PhoneNumber = "333444555"
+                    },
+                    Address = new Address
+                    {
+                        BuildingNumber = "1",
+                        City = "Warsaw",
+                        Country = "Poland",
+                        PostalCode = "00-000",
+                        StreetName = "ABC"
+                    }
+                },new RecordWithNestedClasses
+                {
+                    PersonalData = new PersonalData
+                    {
+                        FirstName = "Jan",
+                        LastName = "Kowalski",
+                        PhoneNumber = "133444555"
+                    },
+                    Address = new Address
+                    {
+                        BuildingNumber = "1",
+                        City = "Łódź",
+                        Country = "Poland",
+                        PostalCode = "00-000",
+                        StreetName = "ABC"
+                    }
+                },
+                new RecordWithNestedClasses
+                {
+                    PersonalData = new PersonalData
+                    {
+                        FirstName = "John",
+                        LastName = "Doe",
+                        PhoneNumber = "2435368493"
+                    },
+                    Address = new Address
+                    {
+                        BuildingNumber = "1",
+                        City = "New York",
+                        Country = "USA",
+                        PostalCode = "23456",
+                        StreetName = "ABC"
+                    }
+                }
+            };
+
+            //await ExcelLite.Export("test.xlsx", data);
+            await ExcelLite.Export("test.xlsx", new Workbook(
+                new List<Sheet>{
+                    new Sheet("test", data)
+                    {
+                        UseBorders = true
+                    }
+                })
+            );
+        }
+
+        public static async Task ManyRecordsTest()
+        {
+            var data = Enumerable.Range(0, 980000).Select(x => new { Value = x, Vaue2 = x, Value3 = "testtest" });
+            await ExcelLite.Export("test.xlsx", data);
         }
     }
 }
