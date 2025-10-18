@@ -193,3 +193,7 @@ Test - 12 columns and 1000 rows
             }
         }
 ```
+
+## 📄 License
+
+MIT License © 2025 Krzysztof Kończak
