@@ -8,6 +8,12 @@
             Data = data;
         }
 
+        public Sheet(string name, IAsyncEnumerable<object> data)
+        {
+            Name = name;
+            AsyncData = data;
+        }
+
         public string Name { get; set; }
 
         public SheetVisibility Visibility { get; set; } = SheetVisibility.Visible;
@@ -16,6 +22,8 @@
 
         public bool UseBorders { get; set; }
 
-        public IEnumerable<object> Data { get; set; }
+        public IEnumerable<object>? Data { get; set; }
+
+        public IAsyncEnumerable<object>? AsyncData { get; set; }
     }
 }

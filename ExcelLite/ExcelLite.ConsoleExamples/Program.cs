@@ -8,13 +8,15 @@ namespace ExcelLite.ConsoleExamples
         static async Task Main(string[] args)
         {
             // await GenerateSheet() // Example 1
-            // await GenerateSheetWithFreezePanes() // Example 2
+            await GenerateSheetWithFreezePanes(); // Example 2
             // await MultipleSheetsTest();  // example 3
             // await SheetFromDbTest(); //example 4
             // await SheetManyRowsTest(); //example 5
             // await SheetWithCustomClassInData(); // example 6
             //await SheetWithNestedClasses(); // example 7
-            await ManyRecordsTest();
+            // await ManyRecordsTest();
+            // await RecordTest();
+            //await AsyncEnumerableTest();
         }
 
         private static async Task GenerateSheet()
@@ -265,5 +267,27 @@ namespace ExcelLite.ConsoleExamples
             var data = Enumerable.Range(0, 980000).Select(x => new { Value = x, Vaue2 = x, Value3 = "testtest" });
             await ExcelLite.Export("test.xlsx", data);
         }
+
+        public static async Task RecordTest()
+        {
+            var data = Enumerable.Range(0, 100).Select(x => new RecordT("abc", "def", x));
+            await ExcelLite.Export("test.xlsx", data);
+        }
+
+        public static async Task AsyncEnumerableTest()
+        {
+            await ExcelLite.Export("test.xlsx", TestAsyncEnumerable());
+        }
+
+        private static async IAsyncEnumerable<RecordT> TestAsyncEnumerable()
+        {
+            for (int i = 1; i <= 60; i++)
+            {
+                await Task.Delay(10);
+                yield return new RecordT("abc", "def", i); 
+            }
+        }
     }
+
+    public record RecordT(string Field1, string Field2, int Field3) { }
 }

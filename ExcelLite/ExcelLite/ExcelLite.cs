@@ -22,6 +22,21 @@ namespace ExcelLite
                     }),
                 ct);
 
+        public static async Task Export<T>(string fileName, IAsyncEnumerable<T> data, CancellationToken ct = default) where T : class
+        {
+            using var fileStream = new FileStream(fileName, FileMode.Create);
+            await Export(fileStream, data, ct);
+        }
+
+        public static Task Export<T>(Stream stream, IAsyncEnumerable<T> data, CancellationToken ct = default) where T : class =>
+            Export(
+                stream,
+                new Workbook(
+                    new Sheet[]{
+                        new Sheet("Sheet 1", data)
+                    }),
+                ct);
+
         public static async Task Export(string fileName, Workbook workbook, CancellationToken ct = default)
         {
             using var fileStream = new FileStream(fileName, FileMode.Create);
@@ -87,7 +102,7 @@ namespace ExcelLite
                 ZipArchiveEntry sheetEntry = zipArchive.CreateEntry($"xl/worksheets/sheet" + i + ".xml");
                 using (StreamWriter writer = new StreamWriter(sheetEntry.Open()))
                 {
-                    customFilesGenerator.GenerateSheet(sheet, writer, ct);
+                    await customFilesGenerator.GenerateSheet(sheet, writer, ct);
                 }
 
                 i++;

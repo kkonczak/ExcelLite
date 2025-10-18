@@ -52,7 +52,7 @@ namespace ExcelLite.BenchmarkDotNet
             await MiniExcel.SaveAsAsync(stream, _data);
         }
 
-        [Benchmark]
+        //[Benchmark]
         public async Task ClosedXMLBenchmark()
         {
             var stream = Stream.Null;
