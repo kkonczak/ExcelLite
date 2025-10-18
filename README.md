@@ -12,6 +12,8 @@
 - ✅ **Minimalistic API** – Simple and intuitive interface for quick integration and easy use.
 - 🧠 **Low RAM usage** – Designed to avoid keeping the entire document in memory.
 - ⚡ **High performance** – Easily generates large-scale Excel files.
+- 🔁 **Async streaming support** — fully supports `IAsyncEnumerable<T>` for generating spreadsheets from asynchronous data sources.  
+- 🧩 **Nested class support** — easily export complex hierarchical objects into structured Excel sheets.  
 - 📄 **Open XML compliant** – Outputs standard `.xlsx` files.
 - 📦 **No external dependencies** – Lightweight and dependency-free by default.
 - 🌍 **Developed 100% in Europe** – Ensures full compliance with regional legal, security, and privacy requirements (e.g. GDPR).
@@ -23,15 +25,26 @@ Most existing Excel libraries load the entire workbook into memory, which can be
 This makes it perfect for:
 
 - Generating large reports
+- Web APIs
+- Background jobs
+- Cloud or serverless environments with limited RAM
 - Exporting massive datasets from databases or logs
 - Background/batch processing where performance and memory usage matter
 - Compliance-conscious environments where software origin matters
 
 ## 📊 Performance Comparison with Other Libraries
-| Method             | Mean    | Error   | StdDev  | Gen0         | Gen1      | Gen2      | Allocated  |
-|------------------- |--------:|--------:|--------:|-------------:|----------:|----------:|-----------:|
-| ExcelLiteBenchmark | **11.54 s** | 0.091 s | 0.085 s |  671000.0000 | 1000.0000 |         - | **1004.14 MB** |
-| MiniExcelBenchmark | 17.59 s | 0.067 s | 0.059 s | 4592000.0000 | 3000.0000 | 2000.0000 | 6881.65 MB |
+Test - 12 columns and 1000000 rows
+| Method             | Mean    | Error   | StdDev  | Gen0         | Gen1      | Gen2      | Allocated |
+|------------------- |--------:|--------:|--------:|-------------:|----------:|----------:|----------:|
+| ExcelLiteBenchmark | **15.42 s** | 0.209 s | 0.196 s |  855000.0000 | 1000.0000 |         - |   **1.25 GB** |
+| MiniExcelBenchmark | 18.59 s | 0.183 s | 0.162 s | 4592000.0000 | 3000.0000 | 2000.0000 |   6.72 GB |
+
+Test - 12 columns and 1000 rows
+| Method             | Mean      | Error     | StdDev    | Gen0       | Gen1   | Gen2      | Allocated |
+|------------------- |----------:|----------:|----------:|-----------:|-----------:|----------:|----------:|
+| ExcelLiteBenchmark |  **14.81 ms** |  0.295 ms |  0.532 ms |   843.7500 | - |         - |   **1.27 MB** |
+| MiniExcelBenchmark |  26.43 ms |  0.525 ms |  0.625 ms |  5656.2500 |  1343.7500 | 1093.7500 |  21.97 MB |
+| ClosedXMLBenchmark | 821.38 ms | 16.190 ms | 35.537 ms | 66000.0000 | 17000.0000 | 3000.0000 | 186.17 MB |
 
 ## 🛠 Example Use Case
 ### Generate simple file
@@ -156,4 +169,27 @@ This makes it perfect for:
 
         public TimeOnly TimeOnly { get; set; }
     }
+```
+
+### Record usage
+```csharp
+   var data = Enumerable.Range(0, 100).Select(x => new RecordT("abc", "def", x));
+   await ExcelLite.Export("test.xlsx", data);
+```
+
+### IAsyncEnumerable usage
+```csharp
+        public static async Task AsyncEnumerableTest()
+        {
+            await ExcelLite.Export("test.xlsx", TestAsyncEnumerable());
+        }
+
+        private static async IAsyncEnumerable<RecordT> TestAsyncEnumerable()
+        {
+            for (int i = 1; i <= 60; i++)
+            {
+                await Task.Delay(10);
+                yield return new RecordT("abc", "def", i); 
+            }
+        }
 ```
