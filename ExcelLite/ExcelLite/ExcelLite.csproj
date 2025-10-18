@@ -1,10 +1,28 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>ExcelLite</Title>
+    <Authors>kkonczak</Authors>
+    <Description>ExcelLite is an open-source C# library designed for fast and memory-efficient generation of Excel (Open XML) files. It focuses on simplicity and performance, making it ideal for scenarios where massive Excel files need to be created with minimal memory overhead.</Description>
+    <PackageProjectUrl>https://github.com/kkonczak/ExcelLite</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/kkonczak/ExcelLite</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>excel,xlsx,openxml</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Version>0.5.0.0</Version>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />

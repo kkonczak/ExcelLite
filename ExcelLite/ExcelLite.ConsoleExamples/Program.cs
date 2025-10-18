@@ -8,8 +8,8 @@ namespace ExcelLite.ConsoleExamples
         static async Task Main(string[] args)
         {
             // await GenerateSheet() // Example 1
-            await GenerateSheetWithFreezePanes(); // Example 2
-            // await MultipleSheetsTest();  // example 3
+            //await GenerateSheetWithFreezePanes(); // Example 2
+            await MultipleSheetsTest();  // example 3
             // await SheetFromDbTest(); //example 4
             // await SheetManyRowsTest(); //example 5
             // await SheetWithCustomClassInData(); // example 6
@@ -131,6 +131,7 @@ namespace ExcelLite.ConsoleExamples
 
             var sheet1 = new Sheet("Arkusz1", data);
             sheet1.View.FreezePanes.YSplit = 3;
+            sheet1.UseBorders = true;
 
             await ExcelLite.Export("test.xlsx", new Workbook(new Sheet[] { new Sheet("Salary", data2), sheet1 }));
         }
@@ -284,7 +285,7 @@ namespace ExcelLite.ConsoleExamples
             for (int i = 1; i <= 60; i++)
             {
                 await Task.Delay(10);
-                yield return new RecordT("abc", "def", i); 
+                yield return new RecordT("abc", "def", i);
             }
         }
     }

@@ -257,7 +257,7 @@ namespace ExcelLite.Internal
             else if (sheet.AsyncData is not null)
             {
                 var asyncEnumerableType = sheet.AsyncData.GetType().GetInterfaces()
-                    .FirstOrDefault(t => 
+                    .FirstOrDefault(t =>
                         t.IsGenericType &&
                         t.GetGenericTypeDefinition() == typeof(IAsyncEnumerable<>));
                 if (asyncEnumerableType is null)
@@ -399,7 +399,7 @@ namespace ExcelLite.Internal
             {
                 foreach (var data in sheet.Data)
                 {
-                    WriteRow(streamWriter, headers, ref rowIndex, data);
+                    WriteRow(streamWriter, headers, ref rowIndex, data, sheet);
 
                     ct.ThrowIfCancellationRequested();
                 }
@@ -408,7 +408,7 @@ namespace ExcelLite.Internal
             {
                 await foreach (var data in sheet.AsyncData)
                 {
-                    WriteRow(streamWriter, headers, ref rowIndex, data);
+                    WriteRow(streamWriter, headers, ref rowIndex, data, sheet);
 
                     ct.ThrowIfCancellationRequested();
                 }
@@ -433,7 +433,7 @@ namespace ExcelLite.Internal
             """);
         }
 
-        private void WriteRow(StreamWriter streamWriter, List<Header> headers, ref int rowIndex, object data)
+        private void WriteRow(StreamWriter streamWriter, List<Header> headers, ref int rowIndex, object data, Sheet sheet)
         {
             // <c r="A1"><v>11</v></c>   - numbers, data, strings when used shared string table
             // <c r="A1"><is><t>string</t></is></c> - inline strings
@@ -448,7 +448,7 @@ namespace ExcelLite.Internal
             foreach (var header in headers)
             {
                 var value = header.ParentProperties is null ? header.Property?.GetValue(data) : GetPropertyValue(header, data);
-                if (value is not null)
+                if (value is not null || sheet.UseBorders)
                 {
                     //<c r="A1"><v>11</v></c>
                     streamWriter.Write("<c r=\"");
@@ -609,7 +609,7 @@ namespace ExcelLite.Internal
             var excelCellFormat = _excelCellFormatList.FirstOrDefault(x => ((builtCellFormat != BuiltCellFormat.Custom && x.BuiltCellFormat == builtCellFormat) || (builtCellFormat == BuiltCellFormat.Custom && x.CustomFormat == customFormat)) && x.UseBorders == sheet.UseBorders);
             if (excelCellFormat == null)
             {
-                excelCellFormat = new ExcelCellFormat() { BuiltCellFormat = builtCellFormat, CustomFormat = customFormat };
+                excelCellFormat = new ExcelCellFormat() { BuiltCellFormat = builtCellFormat, CustomFormat = customFormat, UseBorders = sheet.UseBorders };
                 _excelCellFormatList.Add(excelCellFormat);
             }
 
