@@ -9,7 +9,7 @@ namespace ExcelLite.ConsoleExamples
         {
             // await GenerateSheet() // Example 1
             //await GenerateSheetWithFreezePanes(); // Example 2
-            await MultipleSheetsTest();  // example 3
+            //await MultipleSheetsTest();  // example 3
             // await SheetFromDbTest(); //example 4
             // await SheetManyRowsTest(); //example 5
             // await SheetWithCustomClassInData(); // example 6
@@ -17,6 +17,7 @@ namespace ExcelLite.ConsoleExamples
             // await ManyRecordsTest();
             // await RecordTest();
             //await AsyncEnumerableTest();
+            await StyledHeaderTest();
         }
 
         private static async Task GenerateSheet()
@@ -287,6 +288,16 @@ namespace ExcelLite.ConsoleExamples
                 await Task.Delay(10);
                 yield return new RecordT("abc", "def", i);
             }
+        }
+
+        public static async Task StyledHeaderTest()
+        {
+            var data = Enumerable.Range(0, 980).Select(x => new { Value = x, Vaue2 = x, Value3 = "testtest" });
+            var sheet = new Sheet("testSheet", data);
+            sheet.HeaderStyle.Bold = true;
+            sheet.HeaderStyle.Italic = true;
+            sheet.HeaderStyle.Underline = true;
+            await ExcelLite.Export("test.xlsx", new Workbook(new Sheet[] { sheet }));
         }
     }
 

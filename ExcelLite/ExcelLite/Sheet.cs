@@ -22,6 +22,8 @@
 
         public bool UseBorders { get; set; }
 
+        public HeaderStyle HeaderStyle { get; } = new HeaderStyle();
+
         public IEnumerable<object>? Data { get; set; }
 
         public IAsyncEnumerable<object>? AsyncData { get; set; }

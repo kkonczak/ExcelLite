@@ -134,8 +134,27 @@ namespace ExcelLite.Internal
                 stylesBuilder.Append("</numFmts>");
             }
 
+            var customFontStyles = _excelCellFormatList.Where(x => x.FontStyle is not null).Select(x=>x.FontStyle);
+
             stylesBuilder.Append($$"""
-            <fonts count="1" x14ac:knownFonts="1"><font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/><charset val="238"/><scheme val="minor"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>
+            <fonts count="{{customFontStyles.Count()+1}}" x14ac:knownFonts="{{customFontStyles.Count() + 1}}">
+            """);
+            stylesBuilder.Append($$"""
+            <font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/><charset val="238"/><scheme val="minor"/></font>
+            """);
+            Dictionary<CellFontStyle, int> fontIndexDictionary = new Dictionary<CellFontStyle, int>();
+            foreach (var style in customFontStyles)
+            {
+                var i = fontIndexDictionary.Count + 1;
+                fontIndexDictionary.Add(style, i);
+                stylesBuilder.Append($$"""
+                <font><sz val="11"/><color theme="1"/><name val="Calibri"/><family val="2"/><charset val="238"/><scheme val="minor"/>{{ (style.IsBold ? "<b/>" : string.Empty) }}{{(style.IsItalic ? "<i/>" : string.Empty)}}{{(style.IsUnderline ? "<u/>" : string.Empty)}}</font>
+                """);
+            }
+            stylesBuilder.Append("</fonts>");
+
+            stylesBuilder.Append($$"""
+            <fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>
             """);
             stylesBuilder.Append($$"""
             <borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FF000000"/></left><right style="thin"><color rgb="FF000000"/></right><top style="thin"><color rgb="FF000000"/></top><bottom style="thin"><color rgb="FF000000"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
@@ -152,19 +171,19 @@ namespace ExcelLite.Internal
                 switch (style.BuiltCellFormat)
                 {
                     case BuiltCellFormat.DateOnly:
-                        stylesBuilder.Append($"<xf numFmtId=\"14\" applyNumberFormat=\"1\"{(style.UseBorders ? " applyBorder=\"1\" borderId=\"1\"" : string.Empty)} />");
+                        stylesBuilder.Append($"<xf{(style.FontStyle is not null ? $" fontId=\"{fontIndexDictionary[style.FontStyle]}\"" : "")} numFmtId=\"14\" applyNumberFormat=\"1\"{(style.UseBorders ? " applyBorder=\"1\" borderId=\"1\"" : string.Empty)} />");
                         break;
                     case BuiltCellFormat.DateTime:
-                        stylesBuilder.Append($"<xf numFmtId=\"22\" applyNumberFormat=\"1\"{(style.UseBorders ? " applyBorder=\"1\" borderId=\"1\"" : string.Empty)} />");
+                        stylesBuilder.Append($"<xf{(style.FontStyle is not null ? $" fontId=\"{fontIndexDictionary[style.FontStyle]}\"" : "")} numFmtId=\"22\" applyNumberFormat=\"1\"{(style.UseBorders ? " applyBorder=\"1\" borderId=\"1\"" : string.Empty)} />");
                         break;
                     case BuiltCellFormat.TimeOnly:
-                        stylesBuilder.Append($"<xf numFmtId=\"21\" applyNumberFormat=\"1\"{(style.UseBorders ? " applyBorder=\"1\" borderId=\"1\"" : string.Empty)} />");
+                        stylesBuilder.Append($"<xf{(style.FontStyle is not null ? $" fontId=\"{fontIndexDictionary[style.FontStyle]}\"" : "")} numFmtId=\"21\" applyNumberFormat=\"1\"{(style.UseBorders ? " applyBorder=\"1\" borderId=\"1\"" : string.Empty)} />");
                         break;
                     case BuiltCellFormat.Custom:
-                        stylesBuilder.Append($"<xf numFmtId=\"{customFormatIds[style]}\" applyNumberFormat=\"1\"{(style.UseBorders ? " applyBorder=\"1\" borderId=\"1\"" : string.Empty)} />");
+                        stylesBuilder.Append($"<xf{(style.FontStyle is not null ? $" fontId=\"{fontIndexDictionary[style.FontStyle]}\"" : "")} numFmtId=\"{customFormatIds[style]}\" applyNumberFormat=\"1\"{(style.UseBorders ? " applyBorder=\"1\" borderId=\"1\"" : string.Empty)} />");
                         break;
                     default:
-                        stylesBuilder.Append($"<xf numFmtId=\"0\"{(style.UseBorders ? " applyBorder=\"1\" borderId=\"1\"" : string.Empty)} />");
+                        stylesBuilder.Append($"<xf{(style.FontStyle is not null ? $" fontId=\"{fontIndexDictionary[style.FontStyle]}\"" : "")} numFmtId=\"0\"{(style.UseBorders ? " applyBorder=\"1\" borderId=\"1\"" : string.Empty)} />");
                         break;
                 }
 
@@ -225,7 +244,9 @@ namespace ExcelLite.Internal
             {
                 IsDefaultForSheet = sheet,
                 UseBorders = sheet.UseBorders,
-                IsForHeader = true
+                IsForHeader = true,
+                FontStyle = sheet.HeaderStyle.Bold || sheet.HeaderStyle.Italic || sheet.HeaderStyle.Underline ?
+                    new CellFontStyle { IsBold = sheet.HeaderStyle.Bold, IsItalic = sheet.HeaderStyle.Italic, IsUnderline = sheet.HeaderStyle.Underline } : null
             });
 
             streamWriter.Write($$"""
@@ -739,6 +760,15 @@ namespace ExcelLite.Internal
             public Sheet? IsDefaultForSheet { get; set; }
 
             public bool IsForHeader { get; set; }
+
+            public CellFontStyle? FontStyle { get; set; }
+        }
+
+        private class CellFontStyle
+        {
+            public bool IsBold { get; set; }
+            public bool IsItalic { get; set; }
+            public bool IsUnderline { get; set; }
         }
 
         private enum BuiltCellFormat
