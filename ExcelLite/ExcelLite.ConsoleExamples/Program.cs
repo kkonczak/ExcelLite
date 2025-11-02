@@ -297,6 +297,7 @@ namespace ExcelLite.ConsoleExamples
             sheet.HeaderStyle.Bold = true;
             sheet.HeaderStyle.Italic = true;
             sheet.HeaderStyle.Underline = true;
+            sheet.AddAutofilter = true;
             await ExcelLite.Export("test.xlsx", new Workbook(new Sheet[] { sheet }));
         }
     }

@@ -20,7 +20,9 @@
 
         public SheetView View { get; } = new SheetView();
 
-        public bool UseBorders { get; set; }
+        public bool UseBorders { get; set; } = false;
+
+        public bool AddAutofilter { get; set; } = false;
 
         public HeaderStyle HeaderStyle { get; } = new HeaderStyle();
 

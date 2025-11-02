@@ -449,6 +449,11 @@ namespace ExcelLite.Internal
 
             streamWriter.Write("</sheetData>");
 
+            if (sheet.AddAutofilter)
+            {
+                streamWriter.Write($"<autoFilter ref=\"A1:{GetCellId(1, headers.Count()-1)}\"/>");
+            }
+
             if (mergedCells.Count > 0)
             {
                 streamWriter.Write($"<mergeCells count=\"{mergedCells.Count}\">");
