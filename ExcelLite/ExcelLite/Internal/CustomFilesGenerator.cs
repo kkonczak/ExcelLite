@@ -221,6 +221,13 @@ namespace ExcelLite.Internal
                 UseBorders = sheet.UseBorders
             });
 
+            _excelCellFormatList.Add(new ExcelCellFormat
+            {
+                IsDefaultForSheet = sheet,
+                UseBorders = sheet.UseBorders,
+                IsForHeader = true
+            });
+
             streamWriter.Write($$"""
             <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="x14ac" xmlns:x14ac="http://schemas.microsoft.com/office/spreadsheetml/2009/9/ac">
@@ -352,13 +359,18 @@ namespace ExcelLite.Internal
                         //<c r="A1"><v>11</v></c>
                         streamWriter.Write("<c r=\"");
                         streamWriter.Write(GetCellId(rowIndex, groupColumnNameInfo.StartIndex));
-                        streamWriter.Write("\" t=\"inlineStr\">");
+                        streamWriter.Write($"\" s=\"{_excelCellFormatList.IndexOf(_excelCellFormatList.First(x => x.IsDefaultForSheet == sheet && x.IsForHeader == true)) + 1}\" t=\"inlineStr\">");
                         streamWriter.Write("<is><t>");
                         streamWriter.Write(groupColumnNameInfo.Name);
                         streamWriter.Write("</t></is>");
                         streamWriter.Write("</c>");
 
                         mergedCells.Add($"{GetCellId(rowIndex, groupColumnNameInfo.StartIndex)}:{GetCellId(rowIndex, groupColumnNameInfo.EndIndex)}");
+
+                        for (int i = groupColumnNameInfo.StartIndex + 1; i <= groupColumnNameInfo.EndIndex; i++)
+                        {
+                            streamWriter.Write($"<c r=\"{GetCellId(rowIndex, i)}\" s=\"{_excelCellFormatList.IndexOf(_excelCellFormatList.First(x => x.IsDefaultForSheet == sheet && x.IsForHeader == true)) + 1}\"></c>");
+                        }
                     }
 
                     rowIndex++;
@@ -381,7 +393,7 @@ namespace ExcelLite.Internal
                 //<c r="A1"><v>11</v></c>
                 streamWriter.Write("<c r=\"");
                 streamWriter.Write(GetCellId(rowIndex, headerI));
-                streamWriter.Write("\" t=\"inlineStr\">");
+                streamWriter.Write($"\" s=\"{_excelCellFormatList.IndexOf(_excelCellFormatList.First(x => x.IsDefaultForSheet == sheet && x.IsForHeader == true)) + 1}\" t=\"inlineStr\">");
                 streamWriter.Write("<is><t>");
                 streamWriter.Write(header.Name);
                 streamWriter.Write("</t></is>");
@@ -564,7 +576,7 @@ namespace ExcelLite.Internal
                 }
                 else
                 {
-                    excelCellFormatId = _excelCellFormatList.IndexOf(_excelCellFormatList.First(x => x.IsDefaultForSheet == sheet)) + 1;
+                    excelCellFormatId = _excelCellFormatList.IndexOf(_excelCellFormatList.First(x => x.IsDefaultForSheet == sheet && x.IsForHeader == false)) + 1;
                 }
 
                 if (property.GetCustomAttribute<ColumnIgnoreAttribute>() == null)
@@ -725,6 +737,8 @@ namespace ExcelLite.Internal
             public bool UseBorders { get; set; }
 
             public Sheet? IsDefaultForSheet { get; set; }
+
+            public bool IsForHeader { get; set; }
         }
 
         private enum BuiltCellFormat
